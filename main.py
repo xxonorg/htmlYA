@@ -32,7 +32,7 @@ class peyaSearch:
         self.lat = json.loads(response.text)["data"]["addresses"][0]["lat"]
 
     def __getRestaurantNames(self, unescapedResponse):
-
+        #Regex for now, i'll change it to LXML later...
         restaurants = re.findall(r'(?<=title=\")(.*)(?=\" class="arrivalLogo\">)', unescapedResponse)
         return restaurants
 
@@ -43,8 +43,17 @@ class peyaSearch:
                                 headers={"Upgrade-Insecure-Requests": "1","User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36","Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9","Sec-Fetch-Site": "same-origin","Referer": "https://www.pedidosya.com.ar","Sec-Fetch-Mode": "navigate","Sec-Fetch-User": "?1","Sec-Fetch-Dest": "document","Accept-Encoding": "gzip, deflate","Accept-Language": "en-US,en;q=0.9"})
         # print(unescape(response.text))
         self.currentPage = unescape(response.text)
+        self.currentPageNum = pageNum
         print(self.__getRestaurantNames(self.currentPage))
+
+    def getNextPage(self):
+        self.currentPageNum += 1
+        self.get(pageNum=self.currentPageNum)
+    def getPrevPage(self):
+        self.currentPageNum -= 1
+        self.get(pageNum=self.currentPageNum)
 
 
 initiator = peyaSearch(location, address, country)
 initiator.get()
+initiator.getNextPage()
