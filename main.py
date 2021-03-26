@@ -6,11 +6,16 @@ import json
 from html import unescape
 from config import *
 import re
+from bs4 import BeautifulSoup
 
-# class Restaurant:
-#
-#     def __init__(self, name):
-#         self.name = name
+class Restaurant:
+
+    def __init__(self, name, devName):
+        self.name = name
+        self.devName = devName
+
+    def __repr__(self):
+        return self.name
 
 class peyaSearch:
 
@@ -40,13 +45,19 @@ class peyaSearch:
 
     def __getRestaurantNames(self, unescapedResponse):
         #Regex for now, i'll change it to LXML later...
-        restaurants = re.findall(r'(?<=title=\")(.*)(?=\" class="arrivalLogo\">)', unescapedResponse)
+        # Deprecated regex # restaurants = re.findall(r'(?<=title=\")(.*)(?=\" class="arrivalLogo\">)', unescapedResponse)
+        soup = BeautifulSoup(unescapedResponse, "lxml")
+        restaurants = []
+        for i in soup.find_all('a', {'class':'arrivalLogo'}):
+            restaurantObject = Restaurant(i.string, i.get('href').split('/')[-1])
+            restaurants.append(restaurantObject)
+            print(type(restaurantObject))
         return restaurants
+
 
     def __getMaxLoop(self, htmlResponse):
         maxLoop = re.findall(r'&amp;page=(\d\d)">\d\d</a></li>\n<li class="arrow next">', htmlResponse)
         return maxLoop
-
 
     def get(self, pageNum=1, storeType="RESTAURANT"):
         self.__getCoordinates()
