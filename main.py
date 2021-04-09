@@ -14,7 +14,13 @@ class Restaurant:
         self.name = name
         self.devName = devName
 
+
+    def getDetails(self):
+        pass
+
     def __repr__(self):
+        return self.name
+    def __str__(self):
         return self.name
 
 class peyaSearch:
@@ -45,13 +51,15 @@ class peyaSearch:
 
     def __getRestaurantNames(self, unescapedResponse):
         #Regex for now, i'll change it to LXML later...
-        # Deprecated regex # restaurants = re.findall(r'(?<=title=\")(.*)(?=\" class="arrivalLogo\">)', unescapedResponse)
+        restaurants = re.findall(r'(?<=title=\")(.*)(?=\" class="arrivalLogo\">)', unescapedResponse)
         soup = BeautifulSoup(unescapedResponse, "lxml")
         restaurants = []
         for i in soup.find_all('a', {'class':'arrivalLogo'}):
-            restaurantObject = Restaurant(i.string, i.get('href').split('/')[-1])
+            # print(i)
+            restaurantObject = Restaurant(i.get('title'), i.get('href').split('/')[-1])
             restaurants.append(restaurantObject)
-            print(type(restaurantObject))
+            # print(restaurantObject)
+        # print(restaurants)
         return restaurants
 
 
@@ -73,6 +81,6 @@ class peyaSearch:
 
 
 initiator = peyaSearch(location, address, country)
-print(initiator.get(storeType="COFFEE"))
+print(initiator.get(storeType="RESTAURANT")[0].devName)
 # initiator.getNextPage()
 # initiator.getPrevPage()
