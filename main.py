@@ -10,13 +10,43 @@ from bs4 import BeautifulSoup
 
 class Restaurant:
 
-    def __init__(self, name, devName):
+    def __init__(self, name, devName, location):
         self.name = name
         self.devName = devName
+        self.location = location
 
+        # self.restaurantPage = self.getRekests()
 
     def getDetails(self):
-        pass
+        response = requests.get(f'https://www.pedidosya.com.ar/restaurantes/{self.location}/{self.devName}',
+                     headers={"Accept": "*/*",
+                              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36",
+                              "Accept-Encoding": "gzip, deflate", "Accept-Language": "en-US,en;q=0.9"})
+        self.restaurantPage = response.text
+        soup = BeautifulSoup(self.restaurantPage, 'lxml')
+        dates = soup.findAll('div', attrs={'itemprop': 'openingHoursSpecification'})
+
+        allTimes = {}
+        for date in dates:
+            # print(date.findAll('span'))
+            timesOpen = date.findAll('span', attrs={'itemprop': 'opens'})
+            timeClosed = date.findAll('span', attrs={'itemprop': 'closes'})
+            day = date.find('div').text
+            times = []
+            for index, openTime in enumerate(timesOpen):
+                parsedTimeString = ''
+                parsedTimeString += f"{openTime.text}-{timeClosed[index].text}"
+                times.append(parsedTimeString)
+
+            allTimes[day] = times
+        self.openTimes = allTimes
+
+        self.address = soup.find('span', attrs={'itemprop': 'streetAddress'}).text
+
+        # print(self.openTimes)
+        # print(self.address)
+        return self.openTimes, self.address
+
 
     def __repr__(self):
         return self.name
@@ -56,7 +86,7 @@ class peyaSearch:
         restaurants = []
         for i in soup.find_all('a', {'class':'arrivalLogo'}):
             # print(i)
-            restaurantObject = Restaurant(i.get('title'), i.get('href').split('/')[-1])
+            restaurantObject = Restaurant(name=i.get('title'), devName=i.get('href').split('/')[-1], location=self.location)
             restaurants.append(restaurantObject)
             # print(restaurantObject)
         # print(restaurants)
@@ -77,10 +107,3 @@ class peyaSearch:
         restaurantNames = self.__getRestaurantNames(self.currentPage)
 
         return restaurantNames
-
-
-
-initiator = peyaSearch(location, address, country)
-print(initiator.get(storeType="RESTAURANT")[0].devName)
-# initiator.getNextPage()
-# initiator.getPrevPage()
